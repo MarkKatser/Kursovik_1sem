@@ -1,5 +1,4 @@
-﻿//онли чтение файла и выводы.без пятиугольников
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
 using namespace std;
@@ -131,6 +130,25 @@ bool isUniquePoint(const Point points[], int pointCount, double x, double y) {
     return true;
 }
 
+// Функция для генерации всех возможных комбинаций из пяти точек
+void generateCombinations(Point points[], int pointCount, ofstream& protocolFile) {
+    for (int i = 0; i < pointCount - 4; ++i) {
+        for (int j = i + 1; j < pointCount - 3; ++j) {
+            for (int k = j + 1; k < pointCount - 2; ++k) {
+                for (int l = k + 1; l < pointCount - 1; ++l) {
+                    for (int m = l + 1; m < pointCount; ++m) {
+                        protocolFile << "Комбинация: (" << points[i].x << ", " << points[i].y << "), "
+                            << "(" << points[j].x << ", " << points[j].y << "), "
+                            << "(" << points[k].x << ", " << points[k].y << "), "
+                            << "(" << points[l].x << ", " << points[l].y << "), "
+                            << "(" << points[m].x << ", " << points[m].y << ").\n";
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Основная функция обработки файла
 void processFile(const char* inputFileName, const char* protocolFileName, const char* outputFileName) {
     ifstream inputFile(inputFileName);
@@ -189,6 +207,9 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
     else {
         protocolFile << "Все " << pointCount << " точек успешно считаны.\n";
     }
+
+    // Вызываем функцию для генерации комбинаций из пяти точек
+    generateCombinations(points, validPoints, protocolFile);
 
     protocolFile << "Обработка файла завершена.\n";
     inputFile.close();
