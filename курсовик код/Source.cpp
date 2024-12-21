@@ -1,10 +1,12 @@
-﻿#include <iostream>
+﻿#include <iostream> 
 #include <fstream>
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 // Устанавливаем константу для значения числа π
 const double PI = 3.141592653589793;
+const double EPSILON = 0.01; // Допустимая погрешность для сравнения сторон
 
 // Функция для преобразования строки в число
 bool parseDouble(const char*& ptr, double& value) {
@@ -130,18 +132,78 @@ bool isUniquePoint(const Point points[], int pointCount, double x, double y) {
     return true;
 }
 
-// Функция для генерации всех возможных комбинаций из пяти точек
-void generateCombinations(Point points[], int pointCount, ofstream& protocolFile) {
+// Функция для вычисления расстояния между двумя точками
+double distance(const Point& p1, const Point& p2) {
+    return std::sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
+}
+
+// Функция для нахождения центра пятиугольника
+Point findCenter(const Point points[], int size) {
+    Point center = { 0, 0 };
+    for (int i = 0; i < size; ++i) {
+        center.x += points[i].x;
+        center.y += points[i].y;
+    }
+    center.x /= size;
+    center.y /= size;
+    return center;
+}
+
+// Функция для сортировки точек по часовой стрелке относительно центра
+void sortPointsClockwise(Point points[], int size, Point center) {
+    std::sort(points, points + size, [&center](const Point& a, const Point& b) {
+        double angleA = atan2(a.y - center.y, a.x - center.x);
+        double angleB = atan2(b.y - center.y, b.x - center.x);
+        return angleA < angleB;
+        });
+}
+
+// Функция для проверки, является ли пятиугольник правильным
+bool isRegularPolygon(const Point points[], int size) {
+    double sideLength = distance(points[0], points[1]);
+    for (int i = 1; i < size; ++i) {
+        int next = (i + 1) % size;
+        if (std::abs(distance(points[i], points[next]) - sideLength) > EPSILON) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Функция для генерации всех возможных комбинаций из пяти точек и проверки их правильности
+void generateCombinations(Point points[], int pointCount, ofstream& protocolFile, ofstream& outputFile) {
+    Point combination[5];
     for (int i = 0; i < pointCount - 4; ++i) {
         for (int j = i + 1; j < pointCount - 3; ++j) {
             for (int k = j + 1; k < pointCount - 2; ++k) {
                 for (int l = k + 1; l < pointCount - 1; ++l) {
                     for (int m = l + 1; m < pointCount; ++m) {
-                        protocolFile << "Комбинация: (" << points[i].x << ", " << points[i].y << "), "
-                            << "(" << points[j].x << ", " << points[j].y << "), "
-                            << "(" << points[k].x << ", " << points[k].y << "), "
-                            << "(" << points[l].x << ", " << points[l].y << "), "
-                            << "(" << points[m].x << ", " << points[m].y << ").\n";
+                        combination[0] = points[i];
+                        combination[1] = points[j];
+                        combination[2] = points[k];
+                        combination[3] = points[l];
+                        combination[4] = points[m];
+
+                        Point center = findCenter(combination, 5);
+                        sortPointsClockwise(combination, 5, center);
+
+                        protocolFile << "Комбинация: (" << combination[0].x << ", " << combination[0].y << "), "
+                            << "(" << combination[1].x << ", " << combination[1].y << "), "
+                            << "(" << combination[2].x << ", " << combination[2].y << "), "
+                            << "(" << combination[3].x << ", " << combination[3].y << "), "
+                            << "(" << combination[4].x << ", " << combination[4].y << ") - ";
+
+                        if (isRegularPolygon(combination, 5)) {
+                            protocolFile << "Правильный.\n";
+                            outputFile << "Правильный пятиугольник: (" << combination[0].x << ", " << combination[0].y << "), "
+                                << "(" << combination[1].x << ", " << combination[1].y << "), "
+                                << "(" << combination[2].x << ", " << combination[2].y << "), "
+                                << "(" << combination[3].x << ", " << combination[3].y << "), "
+                                << "(" << combination[4].x << ", " << combination[4].y << ").\n";
+                        }
+                        else {
+                            protocolFile << "Неправильный.\n";
+                        }
                     }
                 }
             }
@@ -209,7 +271,7 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
     }
 
     // Вызываем функцию для генерации комбинаций из пяти точек
-    generateCombinations(points, validPoints, protocolFile);
+    generateCombinations(points, validPoints, protocolFile, outputFile);
 
     protocolFile << "Обработка файла завершена.\n";
     inputFile.close();
