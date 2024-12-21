@@ -1,108 +1,55 @@
-﻿#include <iostream> 
+﻿#include <iostream>
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <sstream>
 using namespace std;
 
-// Устанавливаем константу для значения числа π
 const double PI = 3.141592653589793;
-const double EPSILON = 0.01; // Допустимая погрешность для сравнения сторон
+const double EPSILON = 0.01;
+
+struct Point {
+    double x, y;
+};
 
 // Функция для преобразования строки в число
 bool parseDouble(const char*& ptr, double& value) {
-    bool negative = false;
     value = 0.0;
-    double fraction = 0.0;
-    double divisor = 1.0;
+    double fraction = 0.0, divisor = 1.0;
+    bool negative = false;
 
-    // Пропускаем пробелы
     while (isspace(*ptr)) ptr++;
+    if (*ptr == '-' || *ptr == '+') negative = (*ptr++ == '-');
 
-    // Проверяем знак числа
-    if (*ptr == '-') {
-        negative = true;
-        ptr++;
-    }
-    else if (*ptr == '+') {
-        ptr++;
-    }
-
-    // Обрабатываем целую часть числа
     if (!isdigit(*ptr)) return false;
-    while (isdigit(*ptr)) {
-        value = value * 10 + (*ptr - '0');
-        ptr++;
-    }
+    while (isdigit(*ptr)) value = value * 10 + (*ptr++ - '0');
 
-    // Обрабатываем дробную часть числа, если есть
     if (*ptr == '.') {
         ptr++;
         while (isdigit(*ptr)) {
-            fraction = fraction * 10 + (*ptr - '0');
+            fraction = fraction * 10 + (*ptr++ - '0');
             divisor *= 10;
-            ptr++;
         }
         value += fraction / divisor;
     }
 
-    // Обрабатываем экспоненциальную часть числа, если есть
-    if (*ptr == 'e' || *ptr == 'E') {
-        ptr++;
-        bool expNegative = false;
+    if ((*ptr == 'e' || *ptr == 'E') && isdigit(*(ptr + 1))) {
         int exponent = 0;
-
-        if (*ptr == '-') {
-            expNegative = true;
-            ptr++;
-        }
-        else if (*ptr == '+') {
-            ptr++;
-        }
-
-        if (!isdigit(*ptr)) return false;
-        while (isdigit(*ptr)) {
-            exponent = exponent * 10 + (*ptr - '0');
-            ptr++;
-        }
-
-        double expValue = pow(10, expNegative ? -exponent : exponent);
-        value *= expValue;
+        bool expNegative = (*++ptr == '-') && ++ptr;
+        while (isdigit(*ptr)) exponent = exponent * 10 + (*ptr++ - '0');
+        value *= pow(10, expNegative ? -exponent : exponent);
     }
 
-    if (negative) value = -value;
+    value = negative ? -value : value;
     return true;
 }
 
 // Функция для проверки строки и извлечения координат
 bool parseLine(const char* line, double& x, double& y) {
-    int count = 0;
     const char* ptr = line;
-
-    while (*ptr != '\0' && count < 2) {
-        // Пропускаем пробелы
-        while (isspace(*ptr)) ptr++;
-
-        double value;
-        if (parseDouble(ptr, value)) {
-            if (count == 0) x = value;
-            else y = value;
-            count++;
-        }
-        else {
-            return false; // Если не удалось считать число, строка некорректна
-        }
-    }
-
-    // Пропускаем оставшиеся символы, если они есть
-    while (*ptr != '\0') {
-        if (!isspace(*ptr)) return false; // Если не пробелы, строка некорректна
-        ptr++;
-    }
-
-    return count == 2; // Условие: строка корректна, если удалось считать 2 числа
+    return parseDouble(ptr, x) && parseDouble(ptr, y) && *ptr == '\0';
 }
 
-// Функция для считывания строки вручную
 bool customReadLine(ifstream& inputFile, char* buffer, size_t bufferSize) {
     size_t i = 0;
     char ch;
@@ -114,30 +61,19 @@ bool customReadLine(ifstream& inputFile, char* buffer, size_t bufferSize) {
         buffer[i++] = ch;
     }
     buffer[i] = '\0';
-    return i > 0; // Возвращаем true, если что-то было считано
+    return i > 0;
 }
 
-// Структура для хранения точки
-struct Point {
-    double x, y;
-};
-
-// Функция для проверки уникальности точки
 bool isUniquePoint(const Point points[], int pointCount, double x, double y) {
-    for (int i = 0; i < pointCount; ++i) {
-        if (points[i].x == x && points[i].y == y) {
-            return false; // Точка уже существует
-        }
-    }
+    for (int i = 0; i < pointCount; ++i)
+        if (points[i].x == x && points[i].y == y) return false;
     return true;
 }
 
-// Функция для вычисления расстояния между двумя точками
-double distance(const Point& p1, const Point& p2) {
-    return std::sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
+inline double distance(const Point& p1, const Point& p2) {
+    return sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
 }
 
-// Функция для нахождения центра пятиугольника
 Point findCenter(const Point points[], int size) {
     Point center = { 0, 0 };
     for (int i = 0; i < size; ++i) {
@@ -149,28 +85,20 @@ Point findCenter(const Point points[], int size) {
     return center;
 }
 
-// Функция для сортировки точек по часовой стрелке относительно центра
 void sortPointsClockwise(Point points[], int size, Point center) {
-    std::sort(points, points + size, [&center](const Point& a, const Point& b) {
-        double angleA = atan2(a.y - center.y, a.x - center.x);
-        double angleB = atan2(b.y - center.y, b.x - center.x);
-        return angleA < angleB;
+    sort(points, points + size, [&center](const Point& a, const Point& b) {
+        return atan2(a.y - center.y, a.x - center.x) < atan2(b.y - center.y, b.x - center.x);
         });
 }
 
-// Функция для проверки, является ли пятиугольник правильным
 bool isRegularPolygon(const Point points[], int size) {
     double sideLength = distance(points[0], points[1]);
-    for (int i = 1; i < size; ++i) {
-        int next = (i + 1) % size;
-        if (std::abs(distance(points[i], points[next]) - sideLength) > EPSILON) {
+    for (int i = 1; i < size; ++i)
+        if (fabs(distance(points[i], points[(i + 1) % size]) - sideLength) > EPSILON)
             return false;
-        }
-    }
     return true;
 }
 
-// Функция для генерации всех возможных комбинаций из пяти точек и проверки их правильности
 void generateCombinations(Point points[], int pointCount, ofstream& protocolFile, ofstream& outputFile) {
     Point combination[5];
     for (int i = 0; i < pointCount - 4; ++i) {
@@ -178,31 +106,26 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
             for (int k = j + 1; k < pointCount - 2; ++k) {
                 for (int l = k + 1; l < pointCount - 1; ++l) {
                     for (int m = l + 1; m < pointCount; ++m) {
-                        combination[0] = points[i];
-                        combination[1] = points[j];
-                        combination[2] = points[k];
-                        combination[3] = points[l];
+                        combination[0] = points[i]; combination[1] = points[j];
+                        combination[2] = points[k]; combination[3] = points[l];
                         combination[4] = points[m];
 
                         Point center = findCenter(combination, 5);
                         sortPointsClockwise(combination, 5, center);
 
-                        protocolFile << "Комбинация: (" << combination[0].x << ", " << combination[0].y << "), "
-                            << "(" << combination[1].x << ", " << combination[1].y << "), "
-                            << "(" << combination[2].x << ", " << combination[2].y << "), "
-                            << "(" << combination[3].x << ", " << combination[3].y << "), "
-                            << "(" << combination[4].x << ", " << combination[4].y << ") - ";
+                        protocolFile << "Комбинация: ";
+                        for (int n = 0; n < 5; ++n)
+                            protocolFile << "(" << combination[n].x << ", " << combination[n].y << ") ";
 
                         if (isRegularPolygon(combination, 5)) {
-                            protocolFile << "Правильный.\n";
-                            outputFile << "Правильный пятиугольник: (" << combination[0].x << ", " << combination[0].y << "), "
-                                << "(" << combination[1].x << ", " << combination[1].y << "), "
-                                << "(" << combination[2].x << ", " << combination[2].y << "), "
-                                << "(" << combination[3].x << ", " << combination[3].y << "), "
-                                << "(" << combination[4].x << ", " << combination[4].y << ").\n";
+                            protocolFile << "- Правильный.\n";
+                            outputFile << "Правильный пятиугольник: ";
+                            for (int n = 0; n < 5; ++n)
+                                outputFile << "(" << combination[n].x << ", " << combination[n].y << ") ";
+                            outputFile << "\n";
                         }
                         else {
-                            protocolFile << "Неправильный.\n";
+                            protocolFile << "- Неправильный.\n";
                         }
                     }
                 }
@@ -211,22 +134,26 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
     }
 }
 
-// Основная функция обработки файла
+// Пользовательская функция преобразования double в строку
+std::string doubleToString(double value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
 void processFile(const char* inputFileName, const char* protocolFileName, const char* outputFileName) {
     ifstream inputFile(inputFileName);
-    ofstream protocolFile(protocolFileName);
-    ofstream outputFile(outputFileName);
+    ofstream protocolFile(protocolFileName), outputFile(outputFileName);
 
-    if (!inputFile.is_open() || !protocolFile.is_open() || !outputFile.is_open()) {
+    if (!inputFile || !protocolFile || !outputFile) {
         cout << "Ошибка открытия файлов!" << endl;
         return;
     }
 
     protocolFile << "Начало обработки файла.\n";
-
-    int pointCount = 0; // Количество ожидаемых точек
+    int pointCount = 0;
     inputFile >> pointCount;
-    inputFile.ignore(); // Пропуск первого символа новой строки
+    inputFile.ignore();
 
     if (pointCount <= 0) {
         protocolFile << "Ошибка: некорректное число точек.\n";
@@ -234,64 +161,46 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
     }
     protocolFile << "Ожидается " << pointCount << " точек.\n";
 
+    Point points[1000];
+    char buffer[256];
     double x, y;
     int validPoints = 0;
-    char buffer[256];
-
-    Point points[1000]; // Массив для хранения уникальных точек (предполагаем, что не более 1000 точек)
 
     while (customReadLine(inputFile, buffer, sizeof(buffer)) && validPoints < pointCount) {
         if (buffer[0] == '\0') {
             protocolFile << "Пропущена пустая строка.\n";
             continue;
         }
-        if (parseLine(buffer, x, y)) {
-            // Проверяем, уникальна ли точка
-            if (isUniquePoint(points, validPoints, x, y)) {
-                protocolFile << "Считана точка: (" << x << "; " << y << ").\n";
-                outputFile << x << " " << y << endl;
-                points[validPoints].x = x;
-                points[validPoints].y = y;
-                validPoints++;
-            }
-            else {
-                protocolFile << "Пропущена повторяющаяся точка: (" << x << "; " << y << ").\n";
-            }
+        if (parseLine(buffer, x, y) && isUniquePoint(points, validPoints, x, y)) {
+            points[validPoints++] = { x, y };
+            protocolFile << "Считана точка: (" << x << "; " << y << ").\n";
         }
         else {
-            protocolFile << "Пропущена некорректная строка: \"" << buffer << "\".\n";
+            protocolFile << "Пропущена строка: " << buffer << "\n";
         }
     }
 
-    if (validPoints < pointCount) {
-        protocolFile << "Предупреждение: считано только " << validPoints << " точек из " << pointCount << ".\n";
-    }
-    else {
-        protocolFile << "Все " << pointCount << " точек успешно считаны.\n";
-    }
+    // Проверяем, все ли точки считаны
+    protocolFile << (validPoints < pointCount ?
+        "Предупреждение: Считано " + doubleToString(validPoints) + " точек.\n" :
+        "Все точки успешно считаны.\n");
 
-    // Вызываем функцию для генерации комбинаций из пяти точек
+    // Записываем считанные точки в output
+    outputFile << "Считанные точки (" << validPoints << "):\n";
+    for (int i = 0; i < validPoints; ++i) {
+        outputFile << "(" << points[i].x << ", " << points[i].y << ")\n";
+    }
+    outputFile << "\n";
+
+    // Генерируем комбинации
     generateCombinations(points, validPoints, protocolFile, outputFile);
 
     protocolFile << "Обработка файла завершена.\n";
-    inputFile.close();
-    protocolFile.close();
-    outputFile.close();
 }
 
 int main() {
     setlocale(LC_ALL, "ru");
-
-    // Имена файлов
-    const char* inputFileName = "points.txt";
-    const char* protocolFileName = "protocol.txt";
-    const char* outputFileName = "output.txt";
-
-    // Запуск обработки файла
-    processFile(inputFileName, protocolFileName, outputFileName);
-
-    // Открываем файл вывода для просмотра
-    system(outputFileName);
-
+    processFile("points.txt", "protocol.txt", "output.txt");
+    system("output.txt");
     return 0;
 }
