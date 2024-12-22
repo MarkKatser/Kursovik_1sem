@@ -99,21 +99,30 @@ bool isRegularPolygon(const Point points[], int size) {
 // Проверка принадлежности точки пятиугольнику через пересечение отрезков
 bool isPointInsidePolygon(const Point polygon[], int size, const Point& p) {
     int count = 0;
+
+    // Проверяем пересечения
     for (int i = 0; i < size; ++i) {
         int next = (i + 1) % size;
         Point a = polygon[i], b = polygon[next];
 
-        if (fabs(a.y - b.y) < EPSILON) continue; // Горизонтальный отрезок
+        // Проверяем, не совпадает ли точка p с одной из вершин
+        if (fabs(p.x - a.x) < EPSILON && fabs(p.y - a.y) < EPSILON) {
+            return false; // Игнорируем точки-вершины
+        }
 
-        if ((p.y > min(a.y, b.y) && p.y <= max(a.y, b.y)) &&
-            (p.x <= max(a.x, b.x))) {
-            double xinters = (p.y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
-            if (fabs(p.x - xinters) < EPSILON || p.x < xinters)
+        // Проверка пересечения
+        if ((a.y > p.y) != (b.y > p.y)) {
+            double intersectionX = a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y);
+            if (p.x < intersectionX) {
                 count++;
+            }
         }
     }
-    return count % 2 == 1;
+
+    return count % 2 == 1; // Нечётное количество пересечений означает, что точка внутри
 }
+
+
 
 // Генерация комбинаций с проверкой на точки внутри
 void generateCombinations(Point points[], int pointCount, ofstream& protocolFile, ofstream& outputFile) {
@@ -136,9 +145,20 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
 
                         if (isRegularPolygon(combination, 5)) {
                             int insideCount = 0;
-                            for (int p = 0; p < pointCount; ++p)
-                                if (isPointInsidePolygon(combination, 5, points[p]))
+                            for (int p = 0; p < pointCount; ++p) {
+                                bool isVertex = false;
+                                for (int v = 0; v < 5; ++v) {
+                                    if (fabs(points[p].x - combination[v].x) < EPSILON &&
+                                        fabs(points[p].y - combination[v].y) < EPSILON) {
+                                        isVertex = true;
+                                        break;
+                                    }
+                                }
+                                if (!isVertex && isPointInsidePolygon(combination, 5, points[p])) {
                                     ++insideCount;
+                                }
+                            }
+
 
                             protocolFile << "- Правильный. Точек внутри: " << insideCount << ".\n";
                             outputFile << "Правильный пятиугольник: ";
