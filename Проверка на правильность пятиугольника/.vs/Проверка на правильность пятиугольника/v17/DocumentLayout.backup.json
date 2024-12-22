@@ -14,16 +14,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -32,7 +24,7 @@
               "RelativeDocumentMoniker": "\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u043D\u0430 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C \u043F\u0435\u043D\u0442\u0430\u0433\u043E\u043D\u0430 \u0440\u0435\u0448.cpp",
               "ToolTip": "C:\\Users\\\u041C\u0430\u0440\u043A\\Desktop\\\u0414\u0417\u0414\u0417\u0414\u0417\u0414\u0417\\\u041F\u0440\u043E\u0433\u0430\\\u041A\u0443\u0440\u0441\u0430\u0447\\\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u043D\u0430 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C \u043F\u044F\u0442\u0438\u0443\u0433\u043E\u043B\u044C\u043D\u0438\u043A\u0430\\\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u043D\u0430 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C \u043F\u0435\u043D\u0442\u0430\u0433\u043E\u043D\u0430 \u0440\u0435\u0448.cpp",
               "RelativeToolTip": "\u041F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u043D\u0430 \u043F\u0440\u0430\u0432\u0438\u043B\u044C\u043D\u043E\u0441\u0442\u044C \u043F\u0435\u043D\u0442\u0430\u0433\u043E\u043D\u0430 \u0440\u0435\u0448.cpp",
-              "ViewState": "AgIAADYAAAAAAAAAAAAqwD8AAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAACoAAAAAAAAAAAAwwEIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-12-19T20:17:57.482Z",
               "EditorCaption": ""

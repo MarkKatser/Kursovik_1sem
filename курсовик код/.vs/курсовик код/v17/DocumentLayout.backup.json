@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\\u041C\u0430\u0440\u043A\\Desktop\\\u0414\u0417\u0414\u0417\u0414\u0417\u0414\u0417\\\u041F\u0440\u043E\u0433\u0430\\\u041A\u0443\u0440\u0441\u0430\u0447\\\u043A\u0443\u0440\u0441\u043E\u0432\u0438\u043A \u043A\u043E\u0434\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\\u041C\u0430\u0440\u043A\\Desktop\\\u0414\u0417\u0414\u0417\u0414\u0417\u0414\u0417\\\u041F\u0440\u043E\u0433\u0430\\\u041A\u0443\u0440\u0441\u0430\u0447\\\u043A\u0443\u0440\u0441\u043E\u0432\u0438\u043A \u043A\u043E\u0434\\Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{6919608D-83A7-4595-8996-3DBCD3927E02}|\u043A\u0443\u0440\u0441\u043E\u0432\u0438\u043A \u043A\u043E\u0434.vcxproj|C:\\Users\\\u041C\u0430\u0440\u043A\\Desktop\\\u0414\u0417\u0414\u0417\u0414\u0417\u0414\u0417\\\u041F\u0440\u043E\u0433\u0430\\\u041A\u0443\u0440\u0441\u0430\u0447\\\u043A\u0443\u0440\u0441\u043E\u0432\u0438\u043A \u043A\u043E\u0434\\Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{6919608D-83A7-4595-8996-3DBCD3927E02}|\u043A\u0443\u0440\u0441\u043E\u0432\u0438\u043A \u043A\u043E\u0434.vcxproj|solutionrelative:Source.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,12 +14,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -28,7 +24,7 @@
               "RelativeDocumentMoniker": "Source.cpp",
               "ToolTip": "C:\\Users\\\u041C\u0430\u0440\u043A\\Desktop\\\u0414\u0417\u0414\u0417\u0414\u0417\u0414\u0417\\\u041F\u0440\u043E\u0433\u0430\\\u041A\u0443\u0440\u0441\u0430\u0447\\\u043A\u0443\u0440\u0441\u043E\u0432\u0438\u043A \u043A\u043E\u0434\\Source.cpp",
               "RelativeToolTip": "Source.cpp",
-              "ViewState": "AgIAAL4AAAAAAAAAAAAAAJIAAAA1AAAAAAAAAA==",
+              "ViewState": "AgIAACQBAAAAAAAAAAAAAC0BAABQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-12-15T21:59:17.262Z",
               "EditorCaption": ""

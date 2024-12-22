@@ -61,10 +61,22 @@ bool parseDouble(const char*& ptr, double& value) {
     return true;
 }
 
-// Функция для проверки строки и извлечения координат
-bool parseLine(const char* line, double& x, double& y) {
+// Функция для извлечения чисел из строки
+int extractNumbers(const char* line, double numbers[], int maxCount) {
     const char* ptr = line;
-    return parseDouble(ptr, x) && parseDouble(ptr, y) && *ptr == '\0';
+    int count = 0;
+    while (*ptr && count < maxCount) {
+        double value;
+        if (parseDouble(ptr, value)) {
+            numbers[count++] = value;
+        }
+        else {
+            while (*ptr && !isdigit(*ptr) && *ptr != '-' && *ptr != '+') {
+                ptr++; // Пропускаем символы, которые не являются частью числа
+            }
+        }
+    }
+    return count;
 }
 
 bool customReadLine(ifstream& inputFile, char* buffer, size_t bufferSize) {
@@ -138,12 +150,16 @@ bool isPointInsidePolygon(const Point polygon[], int size, const Point& p) {
             }
         }
     }
-
     return count % 2 == 1; // Нечётное количество пересечений означает, что точка внутри
 }
 
-// Генерация комбинаций с проверкой на точки внутри
 void generateCombinations(Point points[], int pointCount, ofstream& protocolFile, ofstream& outputFile) {
+    if (pointCount < 5) {
+        protocolFile << "Ошибка: недостаточно точек для формирования пятиугольника.\n";
+        outputFile << "Недостаточно точек для формирования пятиугольника.\n";
+        return;
+    }
+
     Point combination[5];
     int maxInsideCount = 0;
     Point maxCombination[5];
@@ -168,7 +184,7 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
 
                         if (isRegularPolygon(combination, 5)) {
                             int insideCount = 0;
-                            Point* insidePoints = new Point[pointCount]; // Динамический массив для точек внутри
+                            Point* insidePoints = new Point[pointCount]; //массив для точек внутри
 
                             BoundingBox box = calculateBoundingBox(combination, 5);
                             for (int p = 0; p < pointCount; ++p) {
@@ -197,7 +213,6 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
                                 std::copy(insidePoints, insidePoints + insideCount, maxInsidePoints);
                                 maxInsidePointCount = insideCount;
                             }
-
                             protocolFile << "- Правильный. Точек внутри: " << insideCount << ".\n";
                             outputFile << "Правильный пятиугольник: ";
                             for (int n = 0; n < 5; ++n)
@@ -232,72 +247,76 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
     }
     delete[] maxInsidePoints;
 }
-    // Пользовательская функция преобразования double в строку
-    std::string doubleToString(double value) {
-        std::ostringstream oss;
-        oss << value;
-        return oss.str();
+// Преобразование double в строку
+string doubleToString(double value) {
+    ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+void processFile(const char* inputFileName, const char* protocolFileName, const char* outputFileName) {
+    ifstream inputFile(inputFileName);
+    ofstream protocolFile(protocolFileName), outputFile(outputFileName);
+
+    if (!inputFile || !protocolFile || !outputFile) {
+        cout << "Ошибка открытия файлов!" << endl;
+        return;
     }
 
-    void processFile(const char* inputFileName, const char* protocolFileName, const char* outputFileName) {
-        ifstream inputFile(inputFileName);
-        ofstream protocolFile(protocolFileName), outputFile(outputFileName);
+    protocolFile << "Начало обработки файла.\n";
+    int pointCount = 0;
+    inputFile >> pointCount;
+    inputFile.ignore();
 
-        if (!inputFile || !protocolFile || !outputFile) {
-            cout << "Ошибка открытия файлов!" << endl;
-            return;
+    if (pointCount <= 0) {
+        protocolFile << "Ошибка: некорректное число точек.\n";
+        return;
+    }
+    protocolFile << "Ожидается " << pointCount << " точек.\n";
+
+    Point points[1000];
+    char buffer[256];
+    double x, y;
+    int validPoints = 0;
+
+
+    while (customReadLine(inputFile, buffer, sizeof(buffer)) && validPoints < pointCount) {
+        if (buffer[0] == '\0') {
+            protocolFile << "Пропущена пустая строка.\n";
+            continue;
         }
-
-        protocolFile << "Начало обработки файла.\n";
-        int pointCount = 0;
-        inputFile >> pointCount;
-        inputFile.ignore();
-
-        if (pointCount <= 0) {
-            protocolFile << "Ошибка: некорректное число точек.\n";
-            return;
+        double numbers[2];
+        int numCount = extractNumbers(buffer, numbers, 2);
+        if (numCount == 2 && isUniquePoint(points, validPoints, numbers[0], numbers[1])) {
+            points[validPoints++] = { numbers[0], numbers[1] };
+            protocolFile << "Считана точка: (" << numbers[0] << "; " << numbers[1] << ").\n";
         }
-        protocolFile << "Ожидается " << pointCount << " точек.\n";
-
-        Point points[1000];
-        char buffer[256];
-        double x, y;
-        int validPoints = 0;
-
-        while (customReadLine(inputFile, buffer, sizeof(buffer)) && validPoints < pointCount) {
-            if (buffer[0] == '\0') {
-                protocolFile << "Пропущена пустая строка.\n";
-                continue;
-            }
-            if (parseLine(buffer, x, y) && isUniquePoint(points, validPoints, x, y)) {
-                points[validPoints++] = { x, y };
-                protocolFile << "Считана точка: (" << x << "; " << y << ").\n";
-            }
-            else {
-                protocolFile << "Пропущена строка: " << buffer << "\n";
-            }
+        else {
+            protocolFile << "Пропущена строка: " << buffer << "\n";
         }
-
-        // Проверяем, все ли точки считаны
-        protocolFile << (validPoints < pointCount ?
-            "Предупреждение: Считано " + doubleToString(validPoints) + " точек.\n" :
-            "Все точки успешно считаны.\n");
-
-        // Записываем считанные точки в output
-        outputFile << "Считанные точки (" << validPoints << "):\n";
-        for (int i = 0; i < validPoints; ++i) {
-            outputFile << "(" << points[i].x << ", " << points[i].y << ")\n";
-        }
-        outputFile << "\n";
-
-        // Генерируем комбинации
-        generateCombinations(points, validPoints, protocolFile, outputFile);
-
-        protocolFile << "Обработка файла завершена.\n";
     }
 
-    int main() {
-        setlocale(LC_ALL, "ru");
-        processFile("points.txt", "protocol.txt", "output.txt");
-        system("output.txt");
+
+    // Проверяем, все ли точки считаны
+    protocolFile << (validPoints < pointCount ?
+        "Предупреждение: Считано " + doubleToString(validPoints) + " точек.\n" :
+        "Все точки успешно считаны.\n");
+
+    // Записываем считанные точки в output
+    outputFile << "Считанные точки (" << validPoints << "):\n";
+    for (int i = 0; i < validPoints; ++i) {
+        outputFile << "(" << points[i].x << ", " << points[i].y << ")\n";
     }
+    outputFile << "\n";
+
+    // Генерируем комбинации
+    generateCombinations(points, validPoints, protocolFile, outputFile);
+
+    protocolFile << "Обработка файла завершена.\n";
+}
+
+int main() {
+    setlocale(LC_ALL, "ru");
+    processFile("points.txt", "protocol.txt", "output.txt");
+    system("output.txt");
+}

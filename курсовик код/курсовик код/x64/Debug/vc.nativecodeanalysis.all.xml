@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?><DEFECTS><DEFECT>
+    <SFA>
+      <FILEPATH>C:\Users\Марк\Desktop\ДЗДЗДЗДЗ\Прога\Курсач\курсовик код\</FILEPATH>
+      <FILENAME>Source.cpp</FILENAME>
+      <LINE>242</LINE>
+      <COLUMN>5</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Функция использует байты стека "17116".  Рассмотрите возможность перемещения некоторых данных в кучу.</DESCRIPTION>
+    <FUNCTION>processFile</FUNCTION>
+    <DECORATED>?processFile@@YAXPEBD00@Z</DECORATED>
+    <FUNCLINE>242</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT></DEFECTS>
