@@ -4,14 +4,11 @@
 #include <algorithm>
 #include <sstream>
 using namespace std;
-
 const double PI = 3.141592653589793;
 const double EPSILON = 0.01;
-
 struct Point {
     double x, y;
 };
-
 // Функция для преобразования строки в число
 bool parseDouble(const char*& ptr, double& value) {
     value = 0.0;
@@ -99,6 +96,26 @@ bool isRegularPolygon(const Point points[], int size) {
     return true;
 }
 
+// Проверка принадлежности точки пятиугольнику через пересечение отрезков
+bool isPointInsidePolygon(const Point polygon[], int size, const Point& p) {
+    int count = 0;
+    for (int i = 0; i < size; ++i) {
+        int next = (i + 1) % size;
+        Point a = polygon[i], b = polygon[next];
+
+        if (fabs(a.y - b.y) < EPSILON) continue; // Горизонтальный отрезок
+
+        if ((p.y > min(a.y, b.y) && p.y <= max(a.y, b.y)) &&
+            (p.x <= max(a.x, b.x))) {
+            double xinters = (p.y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
+            if (fabs(p.x - xinters) < EPSILON || p.x < xinters)
+                count++;
+        }
+    }
+    return count % 2 == 1;
+}
+
+// Генерация комбинаций с проверкой на точки внутри
 void generateCombinations(Point points[], int pointCount, ofstream& protocolFile, ofstream& outputFile) {
     Point combination[5];
     for (int i = 0; i < pointCount - 4; ++i) {
@@ -118,11 +135,16 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
                             protocolFile << "(" << combination[n].x << ", " << combination[n].y << ") ";
 
                         if (isRegularPolygon(combination, 5)) {
-                            protocolFile << "- Правильный.\n";
+                            int insideCount = 0;
+                            for (int p = 0; p < pointCount; ++p)
+                                if (isPointInsidePolygon(combination, 5, points[p]))
+                                    ++insideCount;
+
+                            protocolFile << "- Правильный. Точек внутри: " << insideCount << ".\n";
                             outputFile << "Правильный пятиугольник: ";
                             for (int n = 0; n < 5; ++n)
                                 outputFile << "(" << combination[n].x << ", " << combination[n].y << ") ";
-                            outputFile << "\n";
+                            outputFile << "\nТочек внутри: " << insideCount << "\n\n";
                         }
                         else {
                             protocolFile << "- Неправильный.\n";
