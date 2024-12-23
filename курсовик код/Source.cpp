@@ -103,6 +103,17 @@ inline double distance(const Point& p1, const Point& p2) {
     return sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
 }
 
+inline double angle(const Point& a, const Point& b, const Point& c) {
+    double abx = b.x - a.x;
+    double aby = b.y - a.y;
+    double cbx = b.x - c.x;
+    double cby = b.y - c.y;
+    double dotProduct = abx * cbx + aby * cby;
+    double magnitudeAB = sqrt(abx * abx + aby * aby);
+    double magnitudeCB = sqrt(cbx * cbx + cby * cby);
+    return acos(dotProduct / (magnitudeAB * magnitudeCB));
+}
+
 Point findCenter(const Point points[], int size) {
     Point center = { 0, 0 };
     for (int i = 0; i < size; ++i) {
@@ -122,9 +133,12 @@ void sortPointsClockwise(Point points[], int size, Point center) {
 
 bool isRegularPolygon(const Point points[], int size) {
     double sideLength = distance(points[0], points[1]);
-    for (int i = 1; i < size; ++i)
-        if (fabs(distance(points[i], points[(i + 1) % size]) - sideLength) > EPSILON)
+    double angleValue = angle(points[size - 1], points[0], points[1]);
+    for (int i = 1; i < size; ++i) {
+        if (fabs(distance(points[i], points[(i + 1) % size]) - sideLength) > EPSILON ||
+            fabs(angle(points[i - 1], points[i], points[(i + 1) % size]) - angleValue) > EPSILON)
             return false;
+    }
     return true;
 }
 
