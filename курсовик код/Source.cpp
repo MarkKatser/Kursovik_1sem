@@ -289,6 +289,14 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
     }
 
     protocolFile << "Начало обработки файла.\n";
+
+    // Проверка на пустой входной файл
+    if (inputFile.peek() == ifstream::traits_type::eof()) {
+        protocolFile << "Ошибка: входной файл пуст.\n";
+        outputFile << "Ошибка: входной файл пуст.\n";
+        return;
+    }
+
     int pointCount = 0;
     inputFile >> pointCount;
     inputFile.ignore();
@@ -303,7 +311,6 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
     char buffer[256];
     double x, y;
     int validPoints = 0;
-
 
     while (customReadLine(inputFile, buffer, sizeof(buffer)) && validPoints < pointCount) {
         if (buffer[0] == '\0') {
@@ -320,7 +327,6 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
             protocolFile << "Пропущена строка: " << buffer << "\n";
         }
     }
-
 
     // Проверяем, все ли точки считаны
     protocolFile << (validPoints < pointCount ?
