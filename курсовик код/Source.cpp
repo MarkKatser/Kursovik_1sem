@@ -176,9 +176,12 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
 
     Point combination[5];
     int maxInsideCount = 0;
-    Point maxCombination[5];
-    Point* maxInsidePoints = nullptr;
-    int maxInsidePointCount = 0;
+
+    // Выделение памяти в куче
+    auto maxPolygons = new Point[100][5]; // Хранение до 100 пятиугольников
+    auto allInsidePoints = new Point[100][1000]; // Точки внутри пятиугольников
+    auto insidePointCounts = new int[100](); // Количество точек внутри каждого пятиугольника
+    int maxPolygonCount = 0;
 
     for (int i = 0; i < pointCount - 4; ++i) {
         for (int j = i + 1; j < pointCount - 3; ++j) {
@@ -198,12 +201,12 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
 
                         if (isRegularPolygon(combination, 5)) {
                             int insideCount = 0;
-                            Point* insidePoints = new Point[pointCount]; //массив для точек внутри
-
+                            auto insidePoints = new Point[1000]; // Выделение памяти для точек внутри
                             BoundingBox box = calculateBoundingBox(combination, 5);
+
                             for (int p = 0; p < pointCount; ++p) {
                                 if (!isPointInBoundingBox(box, points[p])) {
-                                    continue; // Пропускаем точки за пределами bounding box
+                                    continue;
                                 }
 
                                 bool isVertex = false;
@@ -215,30 +218,29 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
                                     }
                                 }
                                 if (!isVertex && isPointInsidePolygon(combination, 5, points[p])) {
-                                    insidePoints[insideCount++] = points[p]; // Сохраняем точку
+                                    insidePoints[insideCount++] = points[p];
                                 }
                             }
 
                             if (insideCount > maxInsideCount) {
                                 maxInsideCount = insideCount;
-                                std::copy(combination, combination + 5, maxCombination);
-                                delete[] maxInsidePoints;
-                                maxInsidePoints = new Point[insideCount];
-                                std::copy(insidePoints, insidePoints + insideCount, maxInsidePoints);
-                                maxInsidePointCount = insideCount;
+                                maxPolygonCount = 0; // Сброс количества пятиугольников
+                                std::copy(combination, combination + 5, maxPolygons[maxPolygonCount]);
+                                std::copy(insidePoints, insidePoints + insideCount, allInsidePoints[maxPolygonCount]);
+                                insidePointCounts[maxPolygonCount] = insideCount;
+                                maxPolygonCount++;
                             }
-                            protocolFile << "- Правильный. Точек внутри: " << insideCount << ".\n";
-                            outputFile << "Правильный пятиугольник: ";
-                            for (int n = 0; n < 5; ++n)
-                                outputFile << "(" << combination[n].x << ", " << combination[n].y << ") ";
-                            outputFile << "\nТочек внутри: " << insideCount << "\n";
+                            else if (insideCount == maxInsideCount) {
+                                if (maxPolygonCount < 100) {
+                                    std::copy(combination, combination + 5, maxPolygons[maxPolygonCount]);
+                                    std::copy(insidePoints, insidePoints + insideCount, allInsidePoints[maxPolygonCount]);
+                                    insidePointCounts[maxPolygonCount] = insideCount;
+                                    maxPolygonCount++;
+                                }
+                            }
 
-                            if (insideCount > 0) {
-                                for (int p = 0; p < insideCount; ++p)
-                                    outputFile << "(" << insidePoints[p].x << ", " << insidePoints[p].y << ") ";
-                                outputFile << "\n";
-                            }
-                            delete[] insidePoints;
+                            delete[] insidePoints; // Очистка памяти
+                            protocolFile << "- Правильный. Точек внутри: " << insideCount << ".\n";
                         }
                         else {
                             protocolFile << "- Неправильный.\n";
@@ -249,18 +251,27 @@ void generateCombinations(Point points[], int pointCount, ofstream& protocolFile
         }
     }
 
-    if (maxInsideCount > 0) {
-        outputFile << "\nПятиугольник с максимальным количеством точек внутри (" << maxInsideCount << "):\n";
-        for (int i = 0; i < 5; ++i) {
-            outputFile << "(" << maxCombination[i].x << ", " << maxCombination[i].y << ")\n";
-        }
-        outputFile << "Точки внутри:\n";
-        for (int i = 0; i < maxInsidePointCount; ++i) {
-            outputFile << "(" << maxInsidePoints[i].x << ", " << maxInsidePoints[i].y << ")\n";
+    if (maxPolygonCount > 0) {
+        outputFile << "\nПятиугольники с максимальным количеством точек внутри (" << maxInsideCount << "):\n";
+        for (int i = 0; i < maxPolygonCount; ++i) {
+            outputFile << "Пятиугольник " << (i + 1) << ":\n";
+            for (int j = 0; j < 5; ++j) {
+                outputFile << "(" << maxPolygons[i][j].x << ", " << maxPolygons[i][j].y << ")\n";
+            }
+            outputFile << "Точки внутри:\n";
+            for (int j = 0; j < insidePointCounts[i]; ++j) {
+                outputFile << "(" << allInsidePoints[i][j].x << ", " << allInsidePoints[i][j].y << ")\n";
+            }
+            outputFile << "\n";
         }
     }
-    delete[] maxInsidePoints;
+
+    // Очистка памяти
+    delete[] maxPolygons;
+    delete[] allInsidePoints;
+    delete[] insidePointCounts;
 }
+
 // Преобразование double в строку
 string doubleToString(double value) {
     ostringstream oss;
@@ -330,6 +341,12 @@ void processFile(const char* inputFileName, const char* protocolFileName, const 
 }
 
 int main() {
+    setlocale(LC_ALL, "ru");
+    cout << "Задание: Дано   N   произвольных   точек   на   плоскости.Найти   среди   них   точки, являющиеся вершинами(образующими) фигур, обладающих следующими"
+         << "свойствами: с максимальным числом точек в области(внутренней или строго выделенной). Задание выполнить для правильного пятиугольника.\n"
+         << "Автор: Кацер Марк Алексеевич Группа: 4353\n"
+         << "Дата: 24.12.24\n";
+
     setlocale(LC_ALL, "ru");
     processFile("points.txt", "protocol.txt", "output.txt");
     system("output.txt");
